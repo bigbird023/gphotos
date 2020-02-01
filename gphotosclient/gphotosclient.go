@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/labstack/gommon/log"
 )
 
 const apiVersion = "v1"
@@ -61,12 +63,13 @@ func (c *GPhotosClient) DownloadMedia(ctx context.Context, gphoto GPhoto) error 
 	var body io.Reader = nil
 
 	url := gphoto.BaseURL
-	if &gphoto.MediaMetaData.Photo != nil {
-		url = url + "=w" + gphoto.MediaMetaData.Width + "-h" + gphoto.MediaMetaData.Height + "=d"
-	} else if &gphoto.MediaMetaData.Video != nil {
+	if gphoto.MediaMetaData.Photo != (gMetaPhoto{}) {
+		url = url + "=d" //w" + gphoto.MediaMetaData.Width + "-h" + gphoto.MediaMetaData.Height + "=
+	} else if gphoto.MediaMetaData.Video != (gMetaVideo{}) {
 		url = url + "=dv"
 	}
 
+	log.Info("Trying to download " + url)
 	req, err := http.NewRequest("GET", url, body)
 	if err != nil {
 		return err
@@ -79,7 +82,7 @@ func (c *GPhotosClient) DownloadMedia(ctx context.Context, gphoto GPhoto) error 
 	defer res.Body.Close()
 
 	//open a file for writing
-	file, err := os.Create("/tmp/" + gphoto.Filename)
+	file, err := os.Create("/tmp/gphotos/" + gphoto.Filename)
 	if err != nil {
 		return err
 	}
@@ -92,6 +95,15 @@ func (c *GPhotosClient) DownloadMedia(ctx context.Context, gphoto GPhoto) error 
 	}
 
 	return nil
+}
+
+func ToString(a interface{}) string {
+	out, err := json.Marshal(a)
+	if err != nil {
+		return "ERROR CONVERTING"
+	}
+
+	return string(out)
 }
 
 // // Upload sends the media and returns the UploadToken.

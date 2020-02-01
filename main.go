@@ -24,7 +24,6 @@ func main() {
 
 	//for photos.NextPageToken != "" {
 	for _, curPhoto := range photos.MediaItems {
-		log.Info("Downloading Photo " + curPhoto.Filename)
 		gphotoTransferFromClient.DownloadMedia(ctx, curPhoto)
 	}
 	log.Info("Next Page = " + photos.NextPageToken)

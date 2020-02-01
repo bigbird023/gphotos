@@ -1,5 +1,7 @@
 package gphotos
 
+import "encoding/json"
+
 //GPhotos list of photos and other meta data
 type GPhotos struct {
 	MediaItems    []GPhoto `json:"mediaItems"`
@@ -12,7 +14,7 @@ type GPhoto struct {
 	ProductURL    string         `json:"productUrl`
 	BaseURL       string         `json:"BaseUrl"`
 	MimeType      string         `json:"MimeType"`
-	MediaMetaData gMediaMetaData `json:"mediaMetadata"`
+	MediaMetaData gMediaMetaData `json:"mediaMetadata,omitempty"`
 	Filename      string         `json:"filename"`
 }
 
@@ -20,19 +22,19 @@ type gMediaMetaData struct {
 	CreationTime string     `json:"CreationTime"`
 	Width        string     `json:"Width"`
 	Height       string     `json:"Height"`
-	Photo        gMetaPhoto `json:"Photo"`
-	Video        gMetaVideo `json:"Video"`
+	Photo        gMetaPhoto `json:"Photo,omitempty"`
+	Video        gMetaVideo `json:"Video,omitempty"`
 }
 
 type gMetaPhoto struct {
-	CameraModel     float64 `json:"cameraModel,omitempty"`
-	FocalLength     string  `json:"FocalLength"`
-	ApertureFNumber string  `json:"apertureFNumber"`
-	IsoEquivalent   string  `json:"isoEquivalent"`
-	ExposureTime    string  `json:"exposureTime"`
+	CameraModel     string      `json:"cameraModel,omitempty"`
+	FocalLength     json.Number `json:"FocalLength,omitempty"`
+	ApertureFNumber json.Number `json:"apertureFNumber,omitempty"`
+	IsoEquivalent   json.Number `json:"isoEquivalent,omitempty"`
+	ExposureTime    json.Number `json:"exposureTime,omitempty"`
 }
 
 type gMetaVideo struct {
-	Fps    float64 `json:"Fps"`
-	Status string  `json:"Status"`
+	Fps    json.Number `json:"Fps,omitempty"`
+	Status json.Number `json:"Status,omitempty"`
 }
