@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+    "strings"
 
 	"github.com/labstack/gommon/log"
 )
@@ -69,7 +70,7 @@ func (c *GPhotosClient) DownloadMedia(ctx context.Context, gphoto GPhoto) error 
 		url = url + "=dv"
 	}
 
-	log.Info("Trying to download " + url)
+	log.Info("Trying to download " + gphoto.Filename)
 	req, err := http.NewRequest("GET", url, body)
 	if err != nil {
 		return err
@@ -81,8 +82,16 @@ func (c *GPhotosClient) DownloadMedia(ctx context.Context, gphoto GPhoto) error 
 	}
 	defer res.Body.Close()
 
+	dt := strings.Split(gphoto.MediaMetaData.CreationTime, "T")
+	d := dt[0]
+	ymd := strings.Split(d,"-")
+	yr := ymd[0]
+	mn := ymd[1]
+	dy := ymd[2]
 	//open a file for writing
-	file, err := os.Create("/tmp/gphotos/" + gphoto.Filename)
+	curPath := "d:/gphotos/"  + yr + "/" + mn + "/" + dy + "/"
+	os.MkdirAll(curPath, os.ModePerm)
+	file, err := os.Create(curPath + gphoto.Filename)
 	if err != nil {
 		return err
 	}
