@@ -1,24 +1,58 @@
 package gphotos
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
-    "strings"
+	"strings"
 
 	"github.com/labstack/gommon/log"
+	"github.com/spf13/viper"
 )
 
 const apiVersion = "v1"
 const basePath = "https://photoslibrary.googleapis.com/"
 
-// GPhotosClient is a client for interacting with google photos api.
+//GPhotosClient is a client for interacting with google photos api.
 type GPhotosClient struct {
 	client *http.Client
+}
+
+//GphotoSearch search body
+type GphotoSearch struct {
+	AlbumID   string        `json:"albumId,omitempty"`
+	PageSize  string        `json:"pageSize,omitempty"`
+	PageToken string        `json:"pageToken,omitempty"`
+	Filters   GphotoFilters `json:"filters,omitempty"`
+}
+
+//GphotoFilters filters test
+type GphotoFilters struct {
+	DateFilter               GphotoDateFilter `json:"dateFilter,omitempty"`
+	ContentFilter            interface{}      `json:"contentFilter,omitempty"`
+	MediaTypeFilter          interface{}      `json:"mediaTypeFilter,omitempty"`
+	FeatureFilter            interface{}      `json:"featureFilter,omitempty"`
+	IncludeArchivedMedia     bool             `json:"includeArchivedMedia,omitempty"`
+	ExcludeNonAppCreatedData bool             `json:"excludeNonAppCreatedData,omitempty"`
+}
+
+//GphotoDateFilter date filter
+type GphotoDateFilter struct {
+	Dates  []GphotoDate `json:"dates,omitempty"`
+	Ranges []string     `json:"ranges,omitempty"`
+}
+
+//GphotoDate date format for searching
+type GphotoDate struct {
+	Day   int `json:"day"`
+	Month int `json:"month"`
+	Year  int `json:"year"`
 }
 
 // NewGPhotos creates a new client.
@@ -27,13 +61,22 @@ func NewGPhotos(client *http.Client) *GPhotosClient {
 }
 
 //GetPagedLibraryContents - todo
-func (c *GPhotosClient) GetPagedLibraryContents(ctx context.Context, nextPage string) (*GPhotos, error) {
+func (c *GPhotosClient) GetPagedLibraryContents(ctx context.Context, search *GphotoSearch, nextPage string) (*GPhotos, error) {
 	var body io.Reader = nil
 	var req *http.Request = nil
 	var err error = nil
 	if nextPage != "" {
+		log.Debug("API for nextPage " + nextPage)
 		req, err = http.NewRequest("GET", fmt.Sprintf("%s/%s/mediaItems?pageToken=%s", basePath, apiVersion, nextPage), body)
+	} else if search != nil {
+		reqBody, err := json.Marshal(&search)
+		if err != nil {
+			return nil, err
+		}
+		req, err = http.NewRequest("POST", fmt.Sprintf("%s/%s/mediaItems:search", basePath, apiVersion), bytes.NewBuffer(reqBody))
+		log.Debug("Search Request Body " + string(reqBody))
 	} else {
+		log.Debug("API for Get mediaItems " + nextPage)
 		req, err = http.NewRequest("GET", fmt.Sprintf("%s/%s/mediaItems", basePath, apiVersion), body)
 	}
 	if err != nil {
@@ -46,6 +89,11 @@ func (c *GPhotosClient) GetPagedLibraryContents(ctx context.Context, nextPage st
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode != 200 {
+		log.Debug("Status Code Response " + res.Status)
+		return nil, errors.New(res.Status)
+	}
+
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
@@ -56,6 +104,11 @@ func (c *GPhotosClient) GetPagedLibraryContents(ctx context.Context, nextPage st
 	if err != nil {
 		return nil, err
 	}
+	d, err := json.Marshal(gphotos)
+	if err != nil {
+		return nil, err
+	}
+	log.Debug("Gphotos results " + string(d))
 	return &gphotos, nil
 }
 
@@ -84,12 +137,12 @@ func (c *GPhotosClient) DownloadMedia(ctx context.Context, gphoto GPhoto) error 
 
 	dt := strings.Split(gphoto.MediaMetaData.CreationTime, "T")
 	d := dt[0]
-	ymd := strings.Split(d,"-")
+	ymd := strings.Split(d, "-")
 	yr := ymd[0]
 	mn := ymd[1]
 	dy := ymd[2]
 	//open a file for writing
-	curPath := "d:/gphotos/"  + yr + "/" + mn + "/" + dy + "/"
+	curPath := viper.GetString("DownloadPath") + yr + "/" + mn + "/" + dy + "/"
 	os.MkdirAll(curPath, os.ModePerm)
 	file, err := os.Create(curPath + gphoto.Filename)
 	if err != nil {

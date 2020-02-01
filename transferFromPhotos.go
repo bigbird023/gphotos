@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/bigbird023/gphotos/gphotosclient"
+	gphotos "github.com/bigbird023/gphotos/gphotosclient"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"golang.org/x/oauth2/google"
 )
 
@@ -13,7 +14,7 @@ func NewTransferFrom(credJSON []byte) *gphotos.GPhotosClient {
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
-	oauthClient := NewOauthClient(config, "transferFromToken.json")
+	oauthClient := NewOauthClient(config, viper.GetString("TransferFromTokenFile"))
 
 	return gphotos.NewGPhotos(oauthClient)
 }
