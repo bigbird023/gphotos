@@ -97,6 +97,44 @@ func (c *GPhotosClient) DownloadMedia(ctx context.Context, gphoto GPhoto) error 
 	return nil
 }
 
+//UploadMedia - todo
+func (c *GPhotosClient) UploadMedia(ctx context.Context, gphoto GPhoto) (string, error) {
+	filename := "/tmp/gphotos/" + gphoto.Filename
+	log.Info("Filename to upload ", filename)
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	log.Info("Trying to upload " + gphoto.Filename)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/%s/uploads", basePath, apiVersion), file)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("X-Goog-Upload-File-Name", filename)
+
+	res, err := c.client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	//open a file for writing
+	file, err = os.Create("/tmp/gphotos/" + gphoto.Filename)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	uploadToken := string(b)
+	return uploadToken, nil
+}
+
 func ToString(a interface{}) string {
 	out, err := json.Marshal(a)
 	if err != nil {

@@ -14,6 +14,7 @@ func main() {
 	}
 
 	gphotoTransferFromClient := NewTransferFrom(creds)
+	gphotoTransferToClient := NewTransferTo(creds)
 
 	ctx := context.Background()
 
@@ -24,7 +25,16 @@ func main() {
 
 	//for photos.NextPageToken != "" {
 	for _, curPhoto := range photos.MediaItems {
-		gphotoTransferFromClient.DownloadMedia(ctx, curPhoto)
+		err = gphotoTransferFromClient.DownloadMedia(ctx, curPhoto)
+		if err != nil {
+			log.Error("Error Downloading", err)
+		} else {
+			_, err = gphotoTransferToClient.UploadMedia(ctx, curPhoto)
+			if err != nil {
+				log.Error("Error Uploading ", err)
+			}
+		}
+
 	}
 	log.Info("Next Page = " + photos.NextPageToken)
 	// 	photos, err = gphotoTransferFromClient.GetPagedLibraryContents(ctx, photos.NextPageToken)
@@ -33,35 +43,3 @@ func main() {
 	// 	}
 	// }
 }
-
-// func upload(filepath string, helper *GPhotos, photos *photoslibrary.Service) {
-// 	filename := path.Base(filepath)
-// 	log.Printf("Uploading %s", filename)
-// 	file, err := os.Open(filepath)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	defer file.Close()
-// 	uploadToken, err := helper.Upload(file, filename)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	log.Printf("Uploaded %s as token %s", filename, uploadToken)
-
-// 	log.Printf("Adding media %s", filename)
-// 	batch, err := photos.MediaItems.BatchCreate(&photoslibrary.BatchCreateMediaItemsRequest{
-// 		NewMediaItems: []*photoslibrary.NewMediaItem{
-// 			&photoslibrary.NewMediaItem{
-// 				Description:     filename,
-// 				SimpleMediaItem: &photoslibrary.SimpleMediaItem{UploadToken: uploadToken},
-// 			},
-// 		},
-// 	}).Do()
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	for _, result := range batch.NewMediaItemResults {
-// 		log.Printf("Added media %s as %s", result.MediaItem.Description, result.MediaItem.Id)
-// 	}
-// }
