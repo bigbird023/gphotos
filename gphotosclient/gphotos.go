@@ -36,5 +36,5 @@ type gMetaPhoto struct {
 
 type gMetaVideo struct {
 	Fps    json.Number `json:"Fps,omitempty"`
-	Status json.Number `json:"Status,omitempty"`
+	Status string      `json:"Status,omitempty"`
 }

@@ -12,7 +12,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/labstack/gommon/log"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -99,6 +99,7 @@ func (c *GPhotosClient) GetPagedLibraryContents(ctx context.Context, search *Gph
 		return nil, err
 	}
 
+	log.Debug("Response Body " + string(b))
 	gphotos := GPhotos{}
 	err = json.Unmarshal(b, &gphotos)
 	if err != nil {
