@@ -50,15 +50,17 @@ var downloadCmd = &cobra.Command{
 		downloadChannel := make(chan gphotos.GPhoto, 1)
 
 		threads := viper.GetInt("Threads")
-		if threads < 1 {
-			log.Fatal("Threads must be greater than 0")
-		}
 		wg := sync.WaitGroup{}
-		for i := 0; i < threads; i++ {
-			wg.Add(1)
-			go processDownloads(ctx, &wg, downloadChannel, gphotoTransferFromClient)
+		if threads < 2 {
+			//no threads
+		} else {
+			for i := 0; i < threads; i++ {
+				wg.Add(1)
+				go processDownloads(ctx, &wg, downloadChannel, gphotoTransferFromClient)
+			}
 		}
 
+		configStopYear := viper.GetInt("configStopYear")
 		currentConfigDate := viper.GetString("CurrentDate")
 		currentDate := stringToDate(currentConfigDate)
 		configYear := currentDate.Year()
@@ -71,6 +73,7 @@ var downloadCmd = &cobra.Command{
 			case <-time.After(10 * time.Millisecond):
 
 				currentConfigDate = dateToString(currentDate)
+				search.PageToken = ""
 				search.Filters.DateFilter.Dates = search.Filters.DateFilter.Dates[:0]
 				search.Filters.DateFilter.Dates = append(search.Filters.DateFilter.Dates, stringToGphotoDate(currentConfigDate))
 
@@ -82,13 +85,20 @@ var downloadCmd = &cobra.Command{
 				processPhotos(ctx, downloadChannel, photos, gphotoTransferFromClient)
 
 				for photos.NextPageToken != "" {
-					photos, err = gphotoTransferFromClient.GetPagedLibraryContents(ctx, nil, photos.NextPageToken)
+					search.PageToken = photos.NextPageToken
+					photos, err = gphotoTransferFromClient.GetPagedLibraryContents(ctx, &search, "")
 					if err != nil {
 						log.Fatalf("Unable to get next photo library: %v", err)
 					}
 					processPhotos(ctx, downloadChannel, photos, gphotoTransferFromClient)
 				}
 				currentDate = nextDay(currentDate)
+				if configYear != currentDate.Year() {
+					if configStopYear < currentDate.Year() {
+						configYear = currentDate.Year()
+					}
+
+				}
 			case <-ctx.Done():
 				configYear = 0
 			}
@@ -119,9 +129,22 @@ func watchForSignal(ctx context.Context, cancel func()) {
 func processPhotos(ctx context.Context, downloadChannel chan gphotos.GPhoto, photos *gphotos.GPhotos, gphotoTransferFromClient *gphotos.GPhotosClient) {
 	log.Info("Processing MediaItems ", len(photos.MediaItems))
 	for _, curPhoto := range photos.MediaItems {
-		select {
-		case downloadChannel <- curPhoto:
-		case <-ctx.Done():
+
+		if viper.GetInt("Threads") < 2 {
+			err := gphotoTransferFromClient.DownloadMedia(ctx, curPhoto)
+			if err != nil {
+				log.Error("Error Downloading", err)
+			} else {
+				//_, err = gphotoTransferToClient.UploadMedia(ctx, curPhoto)
+				//if err != nil {
+				//	log.Error("Error Uploading ", err)
+				//}
+			}
+		} else {
+			select {
+			case downloadChannel <- curPhoto:
+			case <-ctx.Done():
+			}
 		}
 	}
 }
@@ -174,6 +197,7 @@ func setupViper() {
 
 	viper.SetDefault("Threads", 1)
 	viper.SetDefault("CurrentDate", dateToString(time.Now()))
+	viper.SetDefault("configStopYear", dateToString(time.Now().AddDate(-1, 0, 0)))
 	viper.SetDefault("CredFile", path.Dir(viper.ConfigFileUsed())+"/credentials.json")
 	viper.SetDefault("TransferFromTokenFile", path.Dir(viper.ConfigFileUsed())+"/transferFromToken.json")
 	viper.SetDefault("TransferToTokenFile", path.Dir(viper.ConfigFileUsed())+"/transferToToken.json")
