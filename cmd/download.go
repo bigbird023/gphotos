@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	gphotos "github.com/bigbird023/gphotos/gphotosclient"
+	gphotos "github.com/bigbird023/gphotos/Client"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
@@ -126,7 +126,7 @@ func watchForSignal(ctx context.Context, cancel func()) {
 
 }
 
-func processPhotos(ctx context.Context, downloadChannel chan gphotos.GPhoto, photos *gphotos.GPhotos, gphotoTransferFromClient *gphotos.GPhotosClient) {
+func processPhotos(ctx context.Context, downloadChannel chan gphotos.GPhoto, photos *gphotos.GPhotos, gphotoTransferFromClient *gphotos.Client) {
 	log.Info("Processing MediaItems ", len(photos.MediaItems))
 	for _, curPhoto := range photos.MediaItems {
 
@@ -144,7 +144,7 @@ func processPhotos(ctx context.Context, downloadChannel chan gphotos.GPhoto, pho
 	}
 }
 
-func processDownloads(ctx context.Context, wg *sync.WaitGroup, downloadChannel chan gphotos.GPhoto, gphotoTransferFromClient *gphotos.GPhotosClient) {
+func processDownloads(ctx context.Context, wg *sync.WaitGroup, downloadChannel chan gphotos.GPhoto, gphotoTransferFromClient *gphotos.Client) {
 foreverloop:
 	for {
 		select {
@@ -222,7 +222,7 @@ func stringToGphotoDate(datetime string) gphotos.GphotoDate {
 	return d
 }
 
-func newTransferFrom(credJSON []byte) *gphotos.GPhotosClient {
+func newTransferFrom(credJSON []byte) *gphotos.Client {
 	// If modifying these scopes, delete your previously saved token.json.
 	config, err := google.ConfigFromJSON(credJSON, "https://www.googleapis.com/auth/photoslibrary.readonly")
 	if err != nil {
@@ -233,7 +233,7 @@ func newTransferFrom(credJSON []byte) *gphotos.GPhotosClient {
 	return gphotos.NewGPhotos(oauthClient)
 }
 
-func newTransferTo(credJSON []byte) *gphotos.GPhotosClient {
+func newTransferTo(credJSON []byte) *gphotos.Client {
 	// If modifying these scopes, delete your previously saved token.json.
 	config, err := google.ConfigFromJSON(credJSON, "https://www.googleapis.com/auth/photoslibrary")
 	if err != nil {
