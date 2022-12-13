@@ -19,13 +19,13 @@ import (
 const apiVersion = "v1"
 const basePath = "https://photoslibrary.googleapis.com/"
 
-//GPhotosClient is a client for interacting with google photos api.
-type GPhotosClient struct {
+//Client is a client for interacting with google photos api.
+type Client struct {
 	client *http.Client
 }
 
-//GphotoSearch search body
-type GphotoSearch struct {
+//Search search body
+type Search struct {
 	AlbumID   string        `json:"albumId,omitempty"`
 	PageSize  string        `json:"pageSize,omitempty"`
 	PageToken string        `json:"pageToken,omitempty"`
@@ -56,12 +56,12 @@ type GphotoDate struct {
 }
 
 // NewGPhotos creates a new client.
-func NewGPhotos(client *http.Client) *GPhotosClient {
-	return &GPhotosClient{client}
+func NewGPhotos(client *http.Client) *Client {
+	return &Client{client}
 }
 
 //GetPagedLibraryContents - todo
-func (c *GPhotosClient) GetPagedLibraryContents(ctx context.Context, search *GphotoSearch, nextPage string) (*GPhotos, error) {
+func (c *Client) GetPagedLibraryContents(ctx context.Context, search *Search, nextPage string) (*GPhotos, error) {
 	var body io.Reader = nil
 	var req *http.Request = nil
 	var err error = nil
@@ -114,7 +114,7 @@ func (c *GPhotosClient) GetPagedLibraryContents(ctx context.Context, search *Gph
 }
 
 //DownloadMedia - todo
-func (c *GPhotosClient) DownloadMedia(ctx context.Context, gphoto GPhoto) error {
+func (c *Client) DownloadMedia(ctx context.Context, gphoto GPhoto) error {
 	var body io.Reader = nil
 
 	url := gphoto.BaseURL
@@ -161,7 +161,7 @@ func (c *GPhotosClient) DownloadMedia(ctx context.Context, gphoto GPhoto) error 
 }
 
 //UploadMedia - todo
-func (c *GPhotosClient) UploadMedia(ctx context.Context, gphoto GPhoto) (string, error) {
+func (c *Client) UploadMedia(ctx context.Context, gphoto GPhoto) (string, error) {
 	filename := "/tmp/gphotos/" + gphoto.Filename
 	log.Info("Filename to upload ", filename)
 	file, err := os.Open(filename)
