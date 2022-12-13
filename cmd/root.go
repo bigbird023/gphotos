@@ -6,8 +6,8 @@ import (
 
 var (
 	// Used for flags.
-	cfgFile     string
-	userLicense string
+	// cfgFile     string
+	// userLicense string
 
 	rootCmd = &cobra.Command{
 		Use:   "gphotos",

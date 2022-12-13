@@ -74,6 +74,9 @@ func (c *Client) GetPagedLibraryContents(ctx context.Context, search *Search, ne
 			return nil, err
 		}
 		req, err = http.NewRequest("POST", fmt.Sprintf("%s/%s/mediaItems:search", basePath, apiVersion), bytes.NewBuffer(reqBody))
+		if err != nil {
+			return nil, err
+		}
 		log.Debug("Search Request Body " + string(reqBody))
 	} else {
 		log.Debug("API for Get mediaItems " + nextPage)
