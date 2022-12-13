@@ -1,0 +1,11 @@
+name: Release binaries
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  releases:
+    uses: bigbird023/github-actions/.github/workflows/go-release-publishToGithub-workflow.yaml@main
+    with:
+      BINARY_NAME: "gphotos"
