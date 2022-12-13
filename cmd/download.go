@@ -182,7 +182,7 @@ func setupViper() {
 	viper.AddConfigPath(".")                       // optionally look for config in the working directory
 	err := viper.ReadInConfig()                    // Find and read the config file
 	if err != nil {                                // Handle errors reading the config file
-		panic(fmt.Errorf("Fatal error config file: %s", err))
+		panic(fmt.Errorf("fatal error config file: %s", err))
 	}
 
 	viper.SetDefault("Threads", 1)
@@ -233,16 +233,16 @@ func newTransferFrom(credJSON []byte) *gphotosclient.Client {
 	return gphotosclient.NewGPhotos(oauthClient)
 }
 
-func newTransferTo(credJSON []byte) *gphotosclient.Client {
-	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(credJSON, "https://www.googleapis.com/auth/photoslibrary")
-	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
-	}
-	oauthClient := newOauthClient(config, viper.GetString("TransferToTokenFile"))
+// func newTransferTo(credJSON []byte) *gphotosclient.Client {
+// 	// If modifying these scopes, delete your previously saved token.json.
+// 	config, err := google.ConfigFromJSON(credJSON, "https://www.googleapis.com/auth/photoslibrary")
+// 	if err != nil {
+// 		log.Fatalf("Unable to parse client secret file to config: %v", err)
+// 	}
+// 	oauthClient := newOauthClient(config, viper.GetString("TransferToTokenFile"))
 
-	return gphotosclient.NewGPhotos(oauthClient)
-}
+// 	return gphotosclient.NewGPhotos(oauthClient)
+// }
 
 func newOauthClient(config *oauth2.Config, localTokenFile string) *http.Client {
 	tok, err := tokenFromFile(localTokenFile)
@@ -264,7 +264,7 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 		log.Fatalf("Unable to read authorization code: %v", err)
 	}
 
-	tok, err := config.Exchange(oauth2.NoContext, authCode)
+	tok, err := config.Exchange(context.Background(), authCode)
 	if err != nil {
 		log.Fatalf("Unable to retrieve token from web: %v", err)
 	}
@@ -274,10 +274,10 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 // Retrieves a token from a local file.
 func tokenFromFile(file string) (*oauth2.Token, error) {
 	f, err := os.Open(file)
-	defer f.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 	tok := &oauth2.Token{}
 	err = json.NewDecoder(f).Decode(tok)
 	return tok, err
@@ -287,9 +287,9 @@ func tokenFromFile(file string) (*oauth2.Token, error) {
 func saveToken(path string, token *oauth2.Token) {
 	fmt.Printf("Saving credential file to: %s\n", path)
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	defer f.Close()
 	if err != nil {
 		log.Fatalf("Unable to cache OAuth token: %v", err)
 	}
+	defer f.Close()
 	json.NewEncoder(f).Encode(token)
 }
