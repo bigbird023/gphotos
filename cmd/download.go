@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	gphotos "github.com/bigbird023/gphotos/Client"
+	gphotosclient "github.com/bigbird023/gphotos/gphotosclient"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
@@ -47,7 +47,7 @@ var downloadCmd = &cobra.Command{
 		gphotoTransferFromClient := newTransferFrom(creds)
 		//gphotoTransferToClient := NewTransferTo(creds)
 
-		downloadChannel := make(chan gphotos.GPhoto, 1)
+		downloadChannel := make(chan gphotosclient.GPhoto, 1)
 
 		threads := viper.GetInt("Threads")
 		wg := sync.WaitGroup{}
@@ -65,7 +65,7 @@ var downloadCmd = &cobra.Command{
 		currentDate := stringToDate(currentConfigDate)
 		configYear := currentDate.Year()
 
-		search := gphotos.GphotoSearch{}
+		search := gphotosclient.Search{}
 
 		for configYear == currentDate.Year() {
 
@@ -126,7 +126,7 @@ func watchForSignal(ctx context.Context, cancel func()) {
 
 }
 
-func processPhotos(ctx context.Context, downloadChannel chan gphotos.GPhoto, photos *gphotos.GPhotos, gphotoTransferFromClient *gphotos.Client) {
+func processPhotos(ctx context.Context, downloadChannel chan gphotosclient.GPhoto, photos *gphotosclient.GPhotos, gphotoTransferFromClient *gphotosclient.Client) {
 	log.Info("Processing MediaItems ", len(photos.MediaItems))
 	for _, curPhoto := range photos.MediaItems {
 
@@ -144,7 +144,7 @@ func processPhotos(ctx context.Context, downloadChannel chan gphotos.GPhoto, pho
 	}
 }
 
-func processDownloads(ctx context.Context, wg *sync.WaitGroup, downloadChannel chan gphotos.GPhoto, gphotoTransferFromClient *gphotos.Client) {
+func processDownloads(ctx context.Context, wg *sync.WaitGroup, downloadChannel chan gphotosclient.GPhoto, gphotoTransferFromClient *gphotosclient.Client) {
 foreverloop:
 	for {
 		select {
@@ -212,9 +212,9 @@ func stringToDate(datetime string) time.Time {
 }
 
 //StringToGphotoDate converter for string to gphotodate
-func stringToGphotoDate(datetime string) gphotos.GphotoDate {
+func stringToGphotoDate(datetime string) gphotosclient.GphotoDate {
 	t := stringToDate(datetime)
-	d := gphotos.GphotoDate{}
+	d := gphotosclient.GphotoDate{}
 	d.Day = t.Day()
 	m := t.Month()
 	d.Month = int(m)
@@ -222,7 +222,7 @@ func stringToGphotoDate(datetime string) gphotos.GphotoDate {
 	return d
 }
 
-func newTransferFrom(credJSON []byte) *gphotos.Client {
+func newTransferFrom(credJSON []byte) *gphotosclient.Client {
 	// If modifying these scopes, delete your previously saved token.json.
 	config, err := google.ConfigFromJSON(credJSON, "https://www.googleapis.com/auth/photoslibrary.readonly")
 	if err != nil {
@@ -230,10 +230,10 @@ func newTransferFrom(credJSON []byte) *gphotos.Client {
 	}
 	oauthClient := newOauthClient(config, viper.GetString("TransferFromTokenFile"))
 
-	return gphotos.NewGPhotos(oauthClient)
+	return gphotosclient.NewGPhotos(oauthClient)
 }
 
-func newTransferTo(credJSON []byte) *gphotos.Client {
+func newTransferTo(credJSON []byte) *gphotosclient.Client {
 	// If modifying these scopes, delete your previously saved token.json.
 	config, err := google.ConfigFromJSON(credJSON, "https://www.googleapis.com/auth/photoslibrary")
 	if err != nil {
@@ -241,7 +241,7 @@ func newTransferTo(credJSON []byte) *gphotos.Client {
 	}
 	oauthClient := newOauthClient(config, viper.GetString("TransferToTokenFile"))
 
-	return gphotos.NewGPhotos(oauthClient)
+	return gphotosclient.NewGPhotos(oauthClient)
 }
 
 func newOauthClient(config *oauth2.Config, localTokenFile string) *http.Client {
