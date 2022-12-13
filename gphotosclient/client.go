@@ -198,6 +198,7 @@ func (c *GPhotosClient) UploadMedia(ctx context.Context, gphoto GPhoto) (string,
 	return uploadToken, nil
 }
 
+// ToString converts an interface into a string representation of the data
 func ToString(a interface{}) string {
 	out, err := json.Marshal(a)
 	if err != nil {

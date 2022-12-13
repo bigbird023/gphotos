@@ -11,7 +11,7 @@ type GPhotos struct {
 //GPhoto google photo details
 type GPhoto struct {
 	ID            string         `json:"id"`
-	ProductURL    string         `json:"productUrl`
+	ProductURL    string         `json:"productUrl"`
 	BaseURL       string         `json:"BaseUrl"`
 	MimeType      string         `json:"MimeType"`
 	MediaMetaData gMediaMetaData `json:"mediaMetadata,omitempty"`

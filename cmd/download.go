@@ -134,11 +134,6 @@ func processPhotos(ctx context.Context, downloadChannel chan gphotos.GPhoto, pho
 			err := gphotoTransferFromClient.DownloadMedia(ctx, curPhoto)
 			if err != nil {
 				log.Error("Error Downloading", err)
-			} else {
-				//_, err = gphotoTransferToClient.UploadMedia(ctx, curPhoto)
-				//if err != nil {
-				//	log.Error("Error Uploading ", err)
-				//}
 			}
 		} else {
 			select {
@@ -158,11 +153,6 @@ foreverloop:
 			err := gphotoTransferFromClient.DownloadMedia(ctx, curPhoto)
 			if err != nil {
 				log.Error("Error Downloading", err)
-			} else {
-				//_, err = gphotoTransferToClient.UploadMedia(ctx, curPhoto)
-				//if err != nil {
-				//	log.Error("Error Uploading ", err)
-				//}
 			}
 		case <-time.After(time.Duration(60) * time.Second):
 			log.Info("No Downloads Received after a 60 Seconds Timeout")
