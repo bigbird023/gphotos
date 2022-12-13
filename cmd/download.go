@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
@@ -39,7 +38,7 @@ var downloadCmd = &cobra.Command{
 		go watchForSignal(ctx, cancel)
 
 		setupViper()
-		creds, err := ioutil.ReadFile(viper.GetString("CredFile"))
+		creds, err := os.ReadFile(viper.GetString("CredFile"))
 		if err != nil {
 			log.Fatalf("Unable to read client secret file: %v", err)
 		}
@@ -173,7 +172,7 @@ func nextDay(curDate time.Time) time.Time {
 	return curDate
 }
 
-//SetupViper function to configure the configuration
+// SetupViper function to configure the configuration
 func setupViper() {
 	viper.SetConfigName(configFileName)            // name of config file (without extension)
 	viper.SetConfigType("yaml")                    // REQUIRED if the config file does not have the extension in the name
@@ -194,12 +193,12 @@ func setupViper() {
 	viper.SetDefault("DownloadPath", "/tmp/gphotos/")
 }
 
-//DateToString will convert the dateTime to string format
+// DateToString will convert the dateTime to string format
 func dateToString(datetime time.Time) string {
 	return datetime.Format("2006-01-02T00:00:00.000Z")
 }
 
-//StringToDate will convert at rest string into date (from gphotos
+// StringToDate will convert at rest string into date (from gphotos
 func stringToDate(datetime string) time.Time {
 	layout := "2006-01-02T15:04:05.000Z"
 	t, err := time.Parse(layout, datetime)
@@ -211,7 +210,7 @@ func stringToDate(datetime string) time.Time {
 	return t
 }
 
-//StringToGphotoDate converter for string to gphotodate
+// StringToGphotoDate converter for string to gphotodate
 func stringToGphotoDate(datetime string) gphotosclient.GphotoDate {
 	t := stringToDate(datetime)
 	d := gphotosclient.GphotoDate{}

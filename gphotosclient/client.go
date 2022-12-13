@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -19,12 +18,12 @@ import (
 const apiVersion = "v1"
 const basePath = "https://photoslibrary.googleapis.com/"
 
-//Client is a client for interacting with google photos api.
+// Client is a client for interacting with google photos api.
 type Client struct {
 	client *http.Client
 }
 
-//Search search body
+// Search search body
 type Search struct {
 	AlbumID   string        `json:"albumId,omitempty"`
 	PageSize  string        `json:"pageSize,omitempty"`
@@ -32,7 +31,7 @@ type Search struct {
 	Filters   GphotoFilters `json:"filters,omitempty"`
 }
 
-//GphotoFilters filters test
+// GphotoFilters filters test
 type GphotoFilters struct {
 	DateFilter               GphotoDateFilter `json:"dateFilter,omitempty"`
 	ContentFilter            interface{}      `json:"contentFilter,omitempty"`
@@ -42,13 +41,13 @@ type GphotoFilters struct {
 	ExcludeNonAppCreatedData bool             `json:"excludeNonAppCreatedData,omitempty"`
 }
 
-//GphotoDateFilter date filter
+// GphotoDateFilter date filter
 type GphotoDateFilter struct {
 	Dates  []GphotoDate `json:"dates,omitempty"`
 	Ranges []string     `json:"ranges,omitempty"`
 }
 
-//GphotoDate date format for searching
+// GphotoDate date format for searching
 type GphotoDate struct {
 	Day   int `json:"day"`
 	Month int `json:"month"`
@@ -60,7 +59,7 @@ func NewGPhotos(client *http.Client) *Client {
 	return &Client{client}
 }
 
-//GetPagedLibraryContents - todo
+// GetPagedLibraryContents - todo
 func (c *Client) GetPagedLibraryContents(ctx context.Context, search *Search, nextPage string) (*GPhotos, error) {
 	var body io.Reader = nil
 	var req *http.Request = nil
@@ -97,7 +96,7 @@ func (c *Client) GetPagedLibraryContents(ctx context.Context, search *Search, ne
 		return nil, errors.New(res.Status)
 	}
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +115,7 @@ func (c *Client) GetPagedLibraryContents(ctx context.Context, search *Search, ne
 	return &gphotos, nil
 }
 
-//DownloadMedia - todo
+// DownloadMedia - todo
 func (c *Client) DownloadMedia(ctx context.Context, gphoto GPhoto) error {
 	var body io.Reader = nil
 
@@ -163,7 +162,7 @@ func (c *Client) DownloadMedia(ctx context.Context, gphoto GPhoto) error {
 	return nil
 }
 
-//UploadMedia - todo
+// UploadMedia - todo
 func (c *Client) UploadMedia(ctx context.Context, gphoto GPhoto) (string, error) {
 	filename := "/tmp/gphotos/" + gphoto.Filename
 	log.Info("Filename to upload ", filename)
@@ -193,7 +192,7 @@ func (c *Client) UploadMedia(ctx context.Context, gphoto GPhoto) (string, error)
 	}
 	defer file.Close()
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
 	}
