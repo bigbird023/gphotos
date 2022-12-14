@@ -14,3 +14,5 @@ jobs:
   build:
     uses:
       bigbird023/github-actions/.github/workflows/go-build-workflow.yaml@main 
+    with:
+      TESTCOVERAGE_THRESHOLD: 0
